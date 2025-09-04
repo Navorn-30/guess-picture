@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link sizes="16*16" rel="shortcut icon" href="./img/icon.jpg" type="image/x-icon">
+    <title>เกมทายภาพ</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --card: #121933;
+        --muted: #9fb0ff;
+        --accent: #6ee7b7;
+        --danger: #ff6b6b;
+        --text: #e6ebff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Kanit,
+          sans-serif;
+        background: linear-gradient(180deg, #0b1020, #0b1535 40%, #0b1020);
+        color: var(--text);
+      }
+      .wrap {
+        max-width: 1000px;
+        margin: 24px auto;
+        padding: 16px;
+      }
+      .title {
+        font-weight: 800;
+        font-size: clamp(22px, 3.5vw, 34px);
+        letter-spacing: 0.3px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      }
+      .board {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 16px;
+      }
+      @media (max-width: 880px) {
+        .board {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .image-box {
+        position: relative;
+        aspect-ratio: 16/9;
+        overflow: hidden;
+        border-radius: 18px;
+      }
+      .image-box img,
+      .image-box canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .mask {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        gap: 2px;
+        padding: 2px;
+      }
+      .mask div {
+        background: #0b1020;
+        border-radius: 3px;
+      }
+      .hud {
+        position: absolute;
+        inset: auto 12px 12px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .side {
+        padding: 14px;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .btn {
+        cursor: pointer;
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-weight: 700;
+        color: #091024;
+        background: var(--accent);
+        box-shadow: 0 4px 14px rgba(110, 231, 183, 0.3);
+      }
+      .btn.secondary {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .btn.danger {
+        background: var(--danger);
+        color: white;
+      }
+      input[type="text"] {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 12px 14px;
+        border-radius: 12px;
+        outline: 0;
+      }
+      .hint {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .list {
+        margin: 0;
+        padding-left: 18px;
+        line-height: 1.5;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .stat {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        padding: 10px;
+        text-align: center;
+      }
+      .k {
+        font-size: 12px;
+        color: #bcd0ff;
+      }
+      .v {
+        font-size: 18px;
+        font-weight: 800;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        font-size: 12px;
+      }
+      .uploader {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #cfe0ff;
+      }
+      .footer {
+        opacity: 0.7;
+        font-size: 12px;
+        margin-top: 10px;
+      }
+      .blur-overlay {
+        position: absolute;
+        inset: 0;
+        backdrop-filter: blur(var(--blur, 18px));
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="title">
+        🧩 เกมทายภาพ <span class="pill" id="roundPill">รอบ 1</span>
+      </div>
+
+      <div class="board">
+        <!-- LEFT: PLAY AREA -->
+        <div class="card image-box">
+          <img id="img" alt="mystery" />
+          <div class="blur-overlay" id="blur"></div>
+          <div class="mask" id="mask"></div>
+          <div class="hud">
+            <div class="pill">เหลือช่องปิดอยู่: <b id="tilesLeft">--</b></div>
+            <div class="pill">ระดับยาก: <b id="difficultyLabel">ปกติ</b></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: CONTROLS -->
+        <div class="card side">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              gap: 8px;
+              margin-bottom: 8px;
+            "
+          >
+            <div>
+              <div style="font-weight: 800">ทายว่าในภาพคืออะไร?</div>
+              <div class="hint" id="hintText">
+                ใช้ปุ่ม "ใบ้" เพื่อเปิดช่อง/ลดความเบลอ
+              </div>
+            </div>
+            <button class="btn secondary" id="btnSkip" title="ข้ามภาพ">
+              ข้าม
+            </button>
+          </div>
+
+          <div class="row" style="margin-bottom: 8px">
+            <input
+              id="guessInput"
+              type="text"
+              placeholder="พิมพ์คำตอบ เช่น แมว / cat"
+            />
+            <button class="btn" id="btnGuess">ตอบ</button>
+          </div>
+          <div class="row" style="margin-bottom: 12px">
+            <button class="btn secondary" id="btnHint">ใบ้</button>
+            <button class="btn secondary" id="btnReveal">เฉลย</button>
+            <button class="btn danger" id="btnReset">เริ่มใหม่</button>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="k">คะแนน</div>
+              <div class="v" id="score">0</div>
+            </div>
+            <div class="stat">
+              <div class="k">สถิติถูก/ทั้งหมด</div>
+              <div class="v" id="acc">0/0</div>
+            </div>
+            <div class="stat">
+              <div class="k">สตรีค</div>
+              <div class="v" id="streak">0</div>
+            </div>
+          </div>
+
+          <details style="margin-top: 14px">
+            <summary>🔧 ตั้งค่า & เพิ่มรูปเอง</summary>
+            <div class="uploader">
+              <label
+                >เลือกระดับความยาก:
+                <select id="difficulty">
+                  <option value="easy">ง่าย</option>
+                  <option value="normal" selected>ปกติ</option>
+                  <option value="hard">ยาก</option>
+                </select>
+              </label>
+              <div style="margin-top: 8px">
+                <input type="file" id="fileInput" accept="image/*" multiple />
+                <button class="btn secondary" id="btnAddImages">
+                  เพิ่มรูปเข้าชุด
+                </button>
+              </div>
+              <div style="margin-top: 6px" class="hint">
+                เคล็ดลับ: ตั้งชื่อไฟล์เป็นคำตอบได้ เช่น <code>cat-แมว.jpg</code>
+              </div>
+            </div>
+          </details>
+
+          <div class="footer">
+            ทำด้วย ❤ ด้วย HTML + CSS + JS ธรรมดา ไม่ต้องใช้ไลบรารี
+          </div>
+        </div>
+      </div>
+    </div> 
+    <script src="./js/main.js"></script>
+  </body>
+</html>
