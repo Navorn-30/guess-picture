@@ -191,8 +191,7 @@ function checkAnswer() {
     toast(`✅ ถูกต้อง! +${pts} คะแนน`);
     revealAll();
     updateStats();
-
-    setTimeout(() => nextRound(), 3000); // Set time to show image when the user answer correct answer
+    setTimeout(() => nextRound(), 2000); // Set time to show image when the user answer correct answer
   } else {
     state.streak = 0;
     toast("❌ ยังไม่ใช่ ลองใหม่/กดใบ้ดู");
